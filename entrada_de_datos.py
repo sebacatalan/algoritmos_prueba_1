@@ -1,10 +1,10 @@
 import re
 
 # Usar expresiones regulares para extraer los nombres de las variables de la función objetivo
-#funcion= input("Ingrese la función objetivo (2x1 + 3x2): Z= ")
-#tipo=input("Es Maximización(max) o Minimización(min): ")
-tipo="min"
-funcion="2x1 + 3x2"
+funcion= input("Ingrese la función objetivo (2x1 + 3x2): Z= ")
+tipo=input("Es Maximización(max) o Minimización(min): ")
+#tipo="min"
+#funcion="2x1 + 3x2"
 variables=re.findall(r"(-?\d*)\s*[xX]1\s*[+-]\s*(\d*)\s*[xX]2",funcion)
 n=int(input("Cuantas restricciones son: "))
 
@@ -137,12 +137,55 @@ def funcionobjt(variables_z,tipo,n):
             d+=1
     return matriz , rest
 
-listas, restricc=funcionobjt(variables,tipo,n)
+def x1_x2_menor(matriz):
+    menor=0
+    for i in range(2,4):
+        matriz[1][i]
+        if matriz[1][i] < menor:# 0 > -3
+            menor=matriz[1][i]
+            indice=i
+    return indice
 
-for i in range(n+2):
-    print(listas[i])
+def obtener_columna(matriz,indice,n):
+    var=0
+    for i in range(2,len(matriz)):#para no tener errores estableci que  el valor mas grande del LD tomaria el valor de var
+        if matriz[i][-1]>var:#para no tener que estar cambiandolo constantemente
+            var=matriz[i][-1]
+    for i in range(2,len(matriz)):#asi que al momento de comparar para encontrar el valor mas pequeño de las columnas de cada fila solo se almacenase el mas pequeño
+        if matriz[i][indice]!=0:#
+            piv=matriz[i][-1]/matriz[i][indice]
+            if  var>piv:
+                var=piv
+                ind=i#almacenamos su indice
+    return ind
 
-for i in range(n+1):
-    print(restricc[i])
+def divide_la_fial_piv(matriz,indice,fila,pivote,n):
+    LDI=matriz[0][indice]#aqui es para agregar el x1 o x2 segun la columna pivote 
+    copia_fila=matriz[fila][:]#copio todos los valores de la fila pivote
+    for i in range(1,n+5):#parto de 1 pues en la posicion 0 esta el h1, h2 o h3
+        matriz[fila][i]=copia_fila[i]/pivote#divido la fila por el pivote y ya tendria mi fila  para pivotear hacia arrina y hacia abajo
+    matriz[fila][0]=LDI#al lado izquierdo
+    return matriz#retorno la matriz con sus modificaciones
 
- 
+def ultima_parte(matriz,indice,fila,n):
+    copia_fila=matriz[fila][:]#almacena esa lista dentro de copia_fila
+    for i in range(1,len(matriz)):#parto de 1 pues en la posicion 0 estarian los valores de las columnas
+        if i != fila:#para no tomar en  cuenta a la fila pivote
+            Num=copia_fila[indice]*matriz[i][indice]#almacena en num el 1 que debe dar una vez modificada la matriz multiplicado por fila en la que va el ciclo y su respectivo indice
+            for j in range(1,n+5):#parte de 1 para no  tomar los str de h1,h2 y h3 hasta n que serian restricciones y 5 por (VB,z,x1,x2,LD)
+                matriz[i][j]=matriz[i][j]- copia_fila[j]*Num#le restamos la copia sehun el indice de la fila por el respectivo numero que iria en la fila pivote
+    return matriz
+
+matriz, restricc=funcionobjt(variables,tipo,n)
+if tipo=="max":
+    for j in range(n+2):
+        print(matriz[j])
+    for i in range(2):
+        print("-----------------------------")
+        indice=(x1_x2_menor(matriz))
+        fila=(obtener_columna(matriz,indice,n))
+        div=(divide_la_fial_piv(matriz,indice,fila,matriz[fila][indice],n))
+        ma=(ultima_parte(matriz,indice,fila,n))
+        matriz=ma
+        for j in range(3+2):
+            print(ma[j])
