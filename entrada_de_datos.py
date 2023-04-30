@@ -14,7 +14,7 @@ def funcionobjt(variables_z,tipo,n):
     Z="Z"
     canti=len(variables_z)#tomo el largo de las variables z que en realidad son  las entradas de x1 y x2
     if tipo=="max":#si es maximizacion
-        algo=["DV","Z","X1","X2"]
+        algo=["VB","Z","X1","X2"]
         for i in range(n):
             h="H"+str(i+1)
             algo.append(h)
@@ -67,16 +67,18 @@ def funcionobjt(variables_z,tipo,n):
             matriz.append(coeficientes)#imprime la matriz
             rest.append(todas_las_restricciones)
     elif tipo=="min":
-        algo=["DV","Z","X1","X2"]
-        for i in range(n):
+        algo=["VB","Z","X1","X2"]
+        num_E=0
+        num_A=0
+        for i in range(n*2):
             if i%2==0:
-                num_E=0
                 h="E"+str(num_E+1)
                 algo.append(h)
+                num_E+=1
             else:
-                num_A=0
                 h="A"+str(num_A+1)
                 algo.append(h)
+                num_A+=1
         algo.append("LD")
         matriz.append(algo)
         var_z=[]
