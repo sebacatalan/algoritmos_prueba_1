@@ -8,18 +8,16 @@ matriz=[["VB","Z","x1","x2","E1","A1","E2","A2","E3","A3","LD"],
 funcion= input("Ingrese la función objetivo (2x1 + 3x2): Z= ")
 tipo="min"
 #funcion="2x1 + 3x2"
-variables=re.findall(r"(-?\d*)\s*[xX]1\s*[+-]\s*(\d*)\s*[xX]2",funcion)
-print(variables)
 restricc=[]
-for valor in variables:
-    restricc.append(int(valor[0]))
-    restricc.append(int(valor[1]))
-print("--------",restricc,"---------")
+variables=re.findall(r"(-?\d+(?:,\d{1,2})?)\s*[xX]1\s*[+-]\s*(-?\d+(?:,\d{1,2})?)\s*[xX]2",funcion)
+for valor in variables[0]:
+    restricc.append(float(valor.replace(",", ".")))
 
 n=int(input("Cuantas restricciones son: "))
 
 def funcionobjt(variables_z,tipo,n):
     matriz=[]#inicio la matriz
+    rest=[]
     Z="Z"
     canti=len(variables_z)#tomo el largo de las variables z que en realidad son  las entradas de x1 y x2
     if tipo=="min":
@@ -53,11 +51,14 @@ def funcionobjt(variables_z,tipo,n):
         for i in range(n):
             a=input("Ingresa la restriccion Nº"+str(i+1)+" : ")
             variables=re.findall(r"(-?\s*\d+)\s*[xX]1\s*([+-]\s*\d+)\s*[xX]2",a)     
+            lado_derecho=re.findall(r"(<=|>=)\s*(-?\d+)",a)
             coeficientes = [int(var[0].replace(" ","")) if var[0] else 1 for var in variables]
             coeficientes.insert(0, 0)
             A="A"+str(i+1)
             coeficientes.insert(0, A)
             coeficientes.append(int(variables[-1][1].replace(" ","")))
+            todas_las_restricciones=[int(var[0].replace(" ","")) if var[0] else 1 for var in variables]
+            todas_las_restricciones.append(int(variables[-1][1].replace(" ","")))#agrega el valor como entero y con el signo que deberia tener  dentro de la restriccion
             for j in range(2*n):#este ciclo for es para rellenar los 0 y 1 de las holguras:#si es la holgura 1, en la restriccion 1 se  agrega un 1
                 if j==i+c:
                     coeficientes.append(-1)
@@ -65,8 +66,26 @@ def funcionobjt(variables_z,tipo,n):
                     coeficientes.append(1)
                 else:
                     coeficientes.append(0)#si no se cumple agrega un 0
+            for restriccion in lado_derecho:
+                operador, valor = restriccion
+                valor = int(valor)
+                if operador == "<=":#si se cumple que este era el operador
+                    coeficientes.append(valor)#se agrega el lado derecho
+                    todas_las_restricciones.append("<=")
+                    todas_las_restricciones.append(valor)
+                elif operador == ">=":
+                    coeficientes.append(valor)
+                    todas_las_restricciones.append(">=")
+                    todas_las_restricciones.append(valor)
+            matriz.append(coeficientes)
+            rest.append(todas_las_restricciones)
+            c+=1
+            d+=1
     return matriz
+
 matriz=funcionobjt(variables,tipo,n)
+for j in range(len(matriz)):
+    print(matriz[j])
 print("--------",restricc,"---------")
 def suma_res(matriz,n):
     for j in range(1,n+2):
@@ -127,7 +146,8 @@ def ultima_parte(matriz,indice,fila,n):
 
 cont=0
 matriz=(suma_res(matriz,n))
-print(matriz)
+for j in range(len(matriz)):
+    print(matriz[j])
 while cont!=1:
     for j in range(2,len(matriz[0])):
         if matriz[1][-1]==0:
@@ -161,10 +181,9 @@ for j in range(len(matriz)):
 
 
 def min_fase_2(matriz,restricciones):
-    r=restricciones[0]
     j=0
     for i in range(2,4):        
-        matriz[1][i]=r[j]
+        matriz[1][i]=restricciones[j]
         j+=1
     return matriz
 
