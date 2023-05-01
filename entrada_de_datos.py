@@ -139,7 +139,7 @@ def funcionobjt(variables_z,tipo,n):
 
 def x1_x2_menor(matriz):
     menor=0
-    for i in range(2,4):
+    for i in range(2,(len(matriz[0]))):
         matriz[1][i]
         if matriz[1][i] < menor:# 0 > -3
             menor=matriz[1][i]
@@ -152,7 +152,7 @@ def obtener_columna(matriz,indice,n):
         if matriz[i][-1]>var:#para no tener que estar cambiandolo constantemente
             var=matriz[i][-1]
     for i in range(2,len(matriz)):#asi que al momento de comparar para encontrar el valor mas pequeño de las columnas de cada fila solo se almacenase el mas pequeño
-        if matriz[i][indice]!=0:#
+        if matriz[i][indice]>0:#
             piv=matriz[i][-1]/matriz[i][indice]
             if  var>piv:
                 var=piv
@@ -174,18 +174,36 @@ def ultima_parte(matriz,indice,fila,n):
             Num=copia_fila[indice]*matriz[i][indice]#almacena en num el 1 que debe dar una vez modificada la matriz multiplicado por fila en la que va el ciclo y su respectivo indice
             for j in range(1,n+5):#parte de 1 para no  tomar los str de h1,h2 y h3 hasta n que serian restricciones y 5 por (VB,z,x1,x2,LD)
                 matriz[i][j]=matriz[i][j]- copia_fila[j]*Num#le restamos la copia sehun el indice de la fila por el respectivo numero que iria en la fila pivote
+    for fila in matriz:
+        for i in range(len(fila)):
+            if isinstance(fila[i], (int, float)):
+                fila[i] = round(fila[i], 3)
     return matriz
 
+def menor(matriz):
+    a=0.000000000000000001
+    for i in range(2,len(matriz[0])):
+        if matriz[1][i]<0:
+            a=matriz[1][i]
+    return a
+
 matriz, restricc=funcionobjt(variables,tipo,n)
+
+f=n
 if tipo=="max":
     for j in range(n+2):
         print(matriz[j])
-    for i in range(2):
-        print("-----------------------------")
-        indice=(x1_x2_menor(matriz))
-        fila=(obtener_columna(matriz,indice,n))
-        div=(divide_la_fial_piv(matriz,indice,fila,matriz[fila][indice],n))
-        ma=(ultima_parte(matriz,indice,fila,n))
-        matriz=ma
-        for j in range(3+2):
-            print(ma[j])
+    while n==f:
+        a=menor(matriz)
+        if a<=-1:
+            print("-----------------------------")
+            indice=x1_x2_menor(matriz)
+            fila=obtener_columna(matriz,indice,n)
+            div=divide_la_fial_piv(matriz,indice,fila,matriz[fila][indice],n)
+            ma=ultima_parte(matriz,indice,fila,n)
+            matriz=ma
+            for j in range(n+2):
+                print(ma[j])
+        else:
+            f+=1
+            break
