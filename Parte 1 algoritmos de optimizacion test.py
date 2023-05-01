@@ -1,17 +1,41 @@
 import re
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.optimize import linprog
+from sympy import symbols, solve
 
+#------------------------------------- FUNCION OBJETIVO------------------------------------------
 
 # objetivo = input("Ingrese la función objetivo: ")
 objetivo = 'max z = 3x1 + 5x2' #funciuon de prueba
 
+# Extraer los coeficientes de la función objetivo
+coeficientes_objetivo = re.findall(r'\b\d*x\d*\b', objetivo)
+coef_obj_dict = {}
+for coef in coeficientes_objetivo:
+    valor = coef.replace("x1", "").replace("x2", "").replace("*", "")
+    valor = int(valor) if valor else 1
+    if "x1" in coef:
+        coef_obj_dict["x1"] = valor
+    elif "x2" in coef:
+        coef_obj_dict["x2"] = valor
+    coef_obj_dict["z"] = 0 if coef_obj_dict.get("z") is None else coef_obj_dict.get("z")
 
+# Crear una función de la forma z = ax + by + c
+def crear_funcion(coef_dict):
+    a = coef_dict.get("x1", 0)
+    b = coef_dict.get("x2", 0)
+    c = coef_dict.get("z", 0)
+    return lambda x: (-a*x + c)/b if b != 0 else np.nan
 
-restricciones = ["4x1 + 5x2 >= 5", "6x1 - 7x2 <= 10", "8x1 + 9x2 <= 7"] # restriccion de prueba
+#-------------------------------------------- RESTRICCIONES ----------------------------------
 
-for restriccion in restricciones:
+restricciones = ["0x1 + 2x2 >= 12", "3x1 - 2x2 <= 18","8x1 + 9x2 <= 7","x1 + x2 <=4"]
+
+# Crear el diccionario principal
+diccionario_restricciones = {}
+
+for i, restriccion in enumerate(restricciones):
+    # Crear un diccionario para cada restricción
     coeficientes = re.findall(r'\b\d*x\d*\b', restriccion)
     coef_dict = {}
     for coef in coeficientes:
@@ -35,46 +59,18 @@ for restriccion in restricciones:
     coef_dict["signo"] = signo
     coef_dict["termino_independiente"] = termino_independiente
     
-    print(coef_dict)
+    # Agregar el diccionario de coeficientes al diccionario principal
+    diccionario_restricciones[f"restriccion_{i+1}"] = coef_dict
 
+# print(diccionario_restricciones)
+# print(diccionario_restricciones["restriccion_2"]['x1'])
     
     
-    
-    
-    
-# while True:
-#     restriccion = input("Ingrese una restricción (o escriba 'fin' si terminó): ")
-#     if restriccion == "fin":
-#         break
-#     restricciones.append(restriccion)
 
 #coeficientes de la funcion objetivo
-coeficientes = re.findall(r'\d+', objetivo)
-coeficientes = [int(c) for c in coeficientes]
-print('coef',coeficientes)
-
-
-
-
-
-# Definir la función que grafica una restricción
-def plot_restriccion(coeficientes, termino_independiente, signo):
-    x1 = [0, 10] # Rango de valores para la variable x1
-    x2 = [(termino_independiente - coeficientes[0] * x1[0]) / coeficientes[1],
-          (termino_independiente - coeficientes[0] * x1[1]) / coeficientes[1]]
-    plt.plot(x1, x2, label=f'{coeficientes[0]}x1 + {coeficientes[1]}x2 {signo} {termino_independiente}')
-    plt.ylim(0, 10)
-    plt.xlim(0, 10)
-
-# Ejemplo de cómo llamar a la función plot_restriccion
-plot_restriccion([2, 3], 15, '<=')
-plt.legend()
-plt.show()
-
-
-
-
-
+# coeficientes = re.findall(r'\d+', objetivo)
+# coeficientes = [int(c) for c in coeficientes]
+# print('coef',coeficientes)
 
 
 
@@ -86,46 +82,139 @@ else:
     signo = 1 
     print('min')
 
-A = []
-b = []
-coeficientes_restriccion = []
-#coeficientes de las restricciones
-for restriccion in restricciones:
-    coef = re.findall(r'[\+\-]?\d+', restriccion)
-    coef = [int(c) for c in coef]
-    A.append(coef[:-1])
-    b.append(coef[-1])
-    coeficientes_restriccion.append(coef)
-# print('restriccion A:',A)
+# A = []
+# b = []
+# coeficientes_restriccion = []
+# #coeficientes de las restricciones
+# for restriccion in restricciones:
+#     coef = re.findall(r'[\+\-]?\d+', restriccion)
+#     coef = [int(c) for c in coef]
+#     A.append(coef[:-1])
+#     b.append(coef[-1])
+#     coeficientes_restriccion.append(coef)
+# # print('restriccion A:',A)
 # print('restriccion B:',b)
 # print('coeficientes restricciones: ',coeficientes_restriccion)
 
 # restricciones signos
-signos = []
-for restriccion in restricciones:
-    if "<=" in restriccion:
-        signos.append(-1)  # Restricción <=
-    elif ">=" in restriccion:
-        signos.append(1)   # Restricción >=
+# signos = []
+# for restriccion in restricciones:
+#     if "<=" in restriccion:
+#         signos.append(-1)  # Restricción <=
+#     elif ">=" in restriccion:
+#         signos.append(1)   # Restricción >=
+#     else:
+#         raise ValueError("Restricción no válida")
+
+#------------------------------------ Grafica --------------------------------------
+
+# Grafica restriccion
+fig, ax = plt.subplots()
+# Definir la función que grafica una restricción
+def plot_restriccion(coeficientes, termino_independiente, signo):
+    x1 = [0, 10] # Rango de valores para la variable x1
+    x2 = [(termino_independiente - coeficientes[0] * x1[0]) / coeficientes[1],
+          (termino_independiente - coeficientes[0] * x1[1]) / coeficientes[1]]
+    plt.plot(x1, x2, label=f'{coeficientes[0]}x1 + {coeficientes[1]}x2 {signo} {termino_independiente}')
+    if coeficientes[0] == 0:
+        x = termino_independiente / coeficientes[1]
+        y = 0
+    elif coeficientes[1] == 0:
+        x = 0
+        y = termino_independiente / coeficientes[0]
     else:
-        raise ValueError("Restricción no válida")
+        x = termino_independiente / coeficientes[0]
+        y = termino_independiente / coeficientes[1]
+    
+    # Agregar texto con las coordenadas de la intersección
+    plt.annotate(f'({x:.2f}, 0)', xy=(x, 0), xytext=(5, -10), textcoords='offset points')
+    plt.annotate(f'(0, {y:.2f})', xy=(0, y), xytext=(-30, 5), textcoords='offset points')
+    
+    
+    
+    plt.ylim(0, 10)
+    plt.xlim(0, 10)
+    
+
+#Funcion que encuentra el punto donde las restricciones se intersectan hecho con sympy
+# def encontrar_punto_corte(r1,r2):
+#     x1, x2 = symbols('x1 x2')
+#     eq1 = r1['x1']*x1 + r1['x2']*x2 - r1['termino_independiente']
+#     eq2 = r2['x1']*x1 + r2['x2']*x2 - r2['termino_independiente']
+#     sol = solve((eq1,eq2),(x1,x2))
+#     punto_corte = (sol[x1], sol[x2])
+#     return punto_corte
+
+#Punto de corte manual
+
+def encontrar_punto_de_corte(restriccion1, restriccion2):
+    a1, b1, c1 = restriccion1['x1'], restriccion1['x2'], restriccion1['termino_independiente']
+    a2, b2, c2 = restriccion2['x1'], restriccion2['x2'], restriccion2['termino_independiente']
+    
+    if a1*b2 - a2*b1 == 0:
+        return None  # Las restricciones son paralelas
+    
+    x = (b2*c1 - b1*c2) / (a1*b2 - a2*b1)
+    y = (a1*c2 - a2*c1) / (a1*b2 - a2*b1)
+    
+    return x, y
+
+def encontrar_todos_los_puntos(diccionario_restricciones):
+    puntos_de_corte = []
+    restricciones = list(diccionario_restricciones.values())
+    for i in range(len(restricciones)):
+        for j in range(i + 1, len(restricciones)):
+            punto_de_corte = encontrar_punto_de_corte(restricciones[i], restricciones[j])
+            if punto_de_corte is not None:
+                puntos_de_corte.append(punto_de_corte)
+    return puntos_de_corte
 
 
-# # Dibujar las restricciones
-# plt.figure(figsize=(8,8))
-# x1 = np.linspace(0, 10, 100)  # Rango de valores de x1
-# for i in range(len(restricciones)):
-#     ecuacion = A[i][0]*x1 + A[i][1]*(-1)
-#     plt.plot(x1, ecuacion/b[i], label=f"Restricción {i+1}")
 
-# plt.xlim(0, 10)
-# plt.ylim(0, 10)
-# plt.xlabel('x1')
-# plt.ylabel('x2')
-# plt.title('Restricciones')
-# plt.legend()
-# plt.grid()
-# plt.show()
+    
+puntos_de_corte = encontrar_todos_los_puntos(diccionario_restricciones)
+print(puntos_de_corte)
+
+
+# xd = encontrar_punto_corte(diccionario_restricciones['restriccion_1'],diccionario_restricciones['restriccion_2'])
+# print('punto de corte:',xd)
+
+
+
+
+#prueba del punto de corte (da (2,6))
+# print(encontrar_punto_corte(diccionario_restricciones["restriccion_1"],diccionario_restricciones["restriccion_2"]))
+
+
+#NOTA: Tambien se puede solventar manualmente, primero identificando las restricciones que se intersectan y luego
+# despejando alguno de los x (x1 por ejemplo) para poder obtener x2 en un sistema de ecuaciones
+
+
+
+
+#======================================= TESTEO ==========================================
+# Ejemplo de cómo llamar a la función plot_restriccion de forma manual
+
+# plot_restriccion([diccionario_restricciones['restriccion_2']['x1'],
+#                   diccionario_restricciones['restriccion_2']['x2']],
+#                  diccionario_restricciones['restriccion_2']['termino_independiente'],
+#                  diccionario_restricciones["restriccion_2"]['signo'])
+# # print(diccionario_restricciones["restriccion_2"]['x1'])
+
+#=========================================================================================
+
+
+
+#Graficamos todas las restricciones
+for restriccion in diccionario_restricciones.values():
+    plot_restriccion([restriccion['x1'], restriccion['x2']], restriccion['termino_independiente'], restriccion['signo'])
+    #Graficamos los puntos de corte
+    for punto in puntos_de_corte:
+        ax.plot(punto[0], punto[1],'ro')
+    
+plt.legend()
+plt.show()
+
 
 
 
