@@ -2,8 +2,7 @@ import re
 
 # Usar expresiones regulares para extraer los nombres de las variables de la función objetivo
 funcion= input("Ingrese la función objetivo (2x1 + 3x2): Z= ")
-tipo=input("Es Maximización(max) o Minimización(min): ")
-#tipo="min"
+tipo="max"
 #funcion="2x1 + 3x2"
 variables=re.findall(r"(-?\d*)\s*[xX]1\s*[+-]\s*(\d*)\s*[xX]2",funcion)
 n=int(input("Cuantas restricciones son: "))
@@ -66,76 +65,6 @@ def funcionobjt(variables_z,tipo,n):
                     todas_las_restricciones.append(valor)
             matriz.append(coeficientes)#imprime la matriz
             rest.append(todas_las_restricciones)
-    elif tipo=="min":
-        algo=["VB","Z","X1","X2"]
-        num_E=0
-        num_A=0
-        for i in range(n*2):
-            if i%2==0:
-                h="E"+str(num_E+1)
-                algo.append(h)
-                num_E+=1
-            else:
-                h="A"+str(num_A+1)
-                algo.append(h)
-                num_A+=1
-        algo.append("LD")
-        matriz.append(algo)
-        var_z=[]
-        cant=4+2*n
-        for i in range(cant):
-            if i==0:
-                var_z.append(-1)
-            elif i>2 and i%2==0:
-                var_z.append(1)
-            else:
-                var_z.append(0)
-        var_z.insert(0,Z)
-        matriz.append(var_z)
-        c=0
-        d=1
-        for variable in variables_z:#recorro variablez
-            for i in range(canti):#este ciclo es para transformar en negativo los coeficientes de x1 y x2
-                x1=int(variable[i])#aqui guardo el valor x1 en la variables x1
-                x2=int(variable[i+1])#lo mismo pero con x2
-                var=[]
-                var.append(x1)
-                var.append(x2)
-                rest.append(var)
-        for i in range(n):
-            a=input("Ingresa la restriccion Nº"+str(i+1)+" : ")
-            variables=re.findall(r"(-?\s*\d+)\s*[xX]1\s*([+-]\s*\d+)\s*[xX]2",a)     
-            lado_derecho=re.findall(r"(<=|>=)\s*(-?\d+)",a)
-            coeficientes = [int(var[0].replace(" ","")) if var[0] else 1 for var in variables]
-            coeficientes.insert(0, 0)
-            A="A"+str(i+1)
-            coeficientes.insert(0, A)
-            coeficientes.append(int(variables[-1][1].replace(" ","")))
-            todas_las_restricciones=[int(var[0].replace(" ","")) if var[0] else 1 for var in variables]
-            todas_las_restricciones.append(int(variables[-1][1].replace(" ","")))#agrega el valor como entero y con el signo que deberia tener  dentro de la restriccion
-            for j in range(2*n):#este ciclo for es para rellenar los 0 y 1 de las holguras:#si es la holgura 1, en la restriccion 1 se  agrega un 1
-                if j==i+c:
-                    coeficientes.append(-1)
-                elif j==i+d:
-                    coeficientes.append(1)
-                else:
-                    coeficientes.append(0)#si no se cumple agrega un 0
-            for restriccion in lado_derecho:
-                operador, valor = restriccion
-                valor = int(valor)
-                if operador == "<=":#si se cumple que este era el operador
-                    coeficientes.append(valor)#se agrega el lado derecho
-                    todas_las_restricciones.append("<=")
-                    todas_las_restricciones.append(valor)
-                elif operador == ">=":
-                    coeficientes.append(valor)
-                    todas_las_restricciones.append(">=")
-                    todas_las_restricciones.append(valor)
-            matriz.append(coeficientes)
-            rest.append(todas_las_restricciones)
-            c+=1
-            d+=1
-    return matriz , rest
 
 def x1_x2_menor(matriz):
     menor=0
@@ -196,7 +125,7 @@ if tipo=="max":
     while n==f:
         a=menor(matriz)
         if a<=-1:
-            print("-----------------------------")
+            print("-----------------------------------------------------")
             indice=x1_x2_menor(matriz)
             fila=obtener_columna(matriz,indice,n)
             div=divide_la_fial_piv(matriz,indice,fila,matriz[fila][indice],n)
@@ -207,3 +136,4 @@ if tipo=="max":
         else:
             f+=1
             break
+        
