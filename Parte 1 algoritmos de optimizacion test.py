@@ -3,10 +3,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sympy import symbols, solve
 
+restricciones = ['x1 + x2 <= 700','5x1+8x2<=5000']
+objetivo = 'max z = 0.08x1 + 0.1x2' #funciuon de prueba
+
 #------------------------------------- FUNCION OBJETIVO------------------------------------------
 
 # objetivo = input("Ingrese la función objetivo: ")
-objetivo = 'max z = 3x1 + 5x2' #funciuon de prueba
+
 
 # Extraer los coeficientes de la función objetivo
 coeficientes_objetivo = re.findall(r'\b\d*x\d*\b', objetivo)
@@ -18,18 +21,35 @@ for coef in coeficientes_objetivo:
         coef_obj_dict["x1"] = valor
     elif "x2" in coef:
         coef_obj_dict["x2"] = valor
-    coef_obj_dict["z"] = 0 if coef_obj_dict.get("z") is None else coef_obj_dict.get("z")
+    # coef_obj_dict["z"] = 0 if coef_obj_dict.get("z") is None else coef_obj_dict.get("z")
+    
+valor2 = 0
+
+#Definir la ecuacion de la recta correspondiente
+m = coef_obj_dict['x1']
+b = coef_obj_dict['x2'] *valor2
+z = lambda x1: m * x1 + b
+
 
 # Crear una función de la forma z = ax + by + c
-def crear_funcion(coef_dict):
-    a = coef_dict.get("x1", 0)
-    b = coef_dict.get("x2", 0)
-    c = coef_dict.get("z", 0)
-    return lambda x: (-a*x + c)/b if b != 0 else np.nan
+# def crear_funcion(coef_dict):
+#     a = coef_dict.get("x1", 0)
+#     b = coef_dict.get("x2", 0)
+#     c = coef_dict.get("z", 0)
+#     return lambda x: (-a*x + c)/b if b != 0 else np.nan
+
+print(coef_obj_dict)
 
 #-------------------------------------------- RESTRICCIONES ----------------------------------
 
-restricciones = ["0x1 + 2x2 >= 12", "3x1 - 2x2 <= 18","8x1 + 9x2 <= 7","x1 + x2 <=4"]
+
+# restricciones = ["0x1 + 2x2 >= 12", "3x1 - 2x2 <= 18","8x1 + 9x2 <= 7","x1 + x2 <=4"]
+# restricciones = []
+# while True:
+#     restriccion = input("Ingrese una restricción (o escriba 'fin' si terminó): ")
+#     if restriccion == "fin":
+#         break
+#     restricciones.append(restriccion)
 
 # Crear el diccionario principal
 diccionario_restricciones = {}
@@ -62,7 +82,7 @@ for i, restriccion in enumerate(restricciones):
     # Agregar el diccionario de coeficientes al diccionario principal
     diccionario_restricciones[f"restriccion_{i+1}"] = coef_dict
 
-# print(diccionario_restricciones)
+print(diccionario_restricciones)
 # print(diccionario_restricciones["restriccion_2"]['x1'])
     
     
@@ -82,29 +102,6 @@ else:
     signo = 1 
     print('min')
 
-# A = []
-# b = []
-# coeficientes_restriccion = []
-# #coeficientes de las restricciones
-# for restriccion in restricciones:
-#     coef = re.findall(r'[\+\-]?\d+', restriccion)
-#     coef = [int(c) for c in coef]
-#     A.append(coef[:-1])
-#     b.append(coef[-1])
-#     coeficientes_restriccion.append(coef)
-# # print('restriccion A:',A)
-# print('restriccion B:',b)
-# print('coeficientes restricciones: ',coeficientes_restriccion)
-
-# restricciones signos
-# signos = []
-# for restriccion in restricciones:
-#     if "<=" in restriccion:
-#         signos.append(-1)  # Restricción <=
-#     elif ">=" in restriccion:
-#         signos.append(1)   # Restricción >=
-#     else:
-#         raise ValueError("Restricción no válida")
 
 #------------------------------------ Grafica --------------------------------------
 
@@ -112,7 +109,7 @@ else:
 fig, ax = plt.subplots()
 # Definir la función que grafica una restricción
 def plot_restriccion(coeficientes, termino_independiente, signo):
-    x1 = [0, 10] # Rango de valores para la variable x1
+    x1 = [-2000, 2000] # Rango de valores para la variable x1
     x2 = [(termino_independiente - coeficientes[0] * x1[0]) / coeficientes[1],
           (termino_independiente - coeficientes[0] * x1[1]) / coeficientes[1]]
     plt.plot(x1, x2, label=f'{coeficientes[0]}x1 + {coeficientes[1]}x2 {signo} {termino_independiente}')
@@ -131,9 +128,9 @@ def plot_restriccion(coeficientes, termino_independiente, signo):
     plt.annotate(f'(0, {y:.2f})', xy=(0, y), xytext=(-30, 5), textcoords='offset points')
     
     
-    
-    plt.ylim(0, 10)
-    plt.xlim(0, 10)
+#Cambia el tamano del grafico
+    plt.ylim(0, 1000)
+    plt.xlim(0, 1000)
     
 
 #Funcion que encuentra el punto donde las restricciones se intersectan hecho con sympy
@@ -169,11 +166,33 @@ def encontrar_todos_los_puntos(diccionario_restricciones):
                 puntos_de_corte.append(punto_de_corte)
     return puntos_de_corte
 
+def verificar_factibilidad(punto, diccionario_restricciones):
+    for restriccion in diccionario_restricciones.values():
+        if restriccion['signo'] == "<=":
+            if punto[0]*restriccion['x1'] + punto[1]*restriccion['x2'] > restriccion['termino_independiente']:
+                return False
+        elif restriccion['signo'] == ">=":
+            if punto[0]*restriccion['x1'] + punto[1]*restriccion['x2'] < restriccion['termino_independiente']:
+                return False
+        elif restriccion['signo'] == "==":
+            if punto[0]*restriccion['x1'] + punto[1]*restriccion['x2'] != restriccion['termino_independiente']:
+                return False
+    return True
 
 
-    
+#colorear
+
+
+
+
+
 puntos_de_corte = encontrar_todos_los_puntos(diccionario_restricciones)
-print(puntos_de_corte)
+print('puntos de corte: ',puntos_de_corte)
+
+
+
+# factible = verificar_factibilidad((2,6),diccionario_restricciones)
+# print(factible)
 
 
 # xd = encontrar_punto_corte(diccionario_restricciones['restriccion_1'],diccionario_restricciones['restriccion_2'])
@@ -208,10 +227,27 @@ print(puntos_de_corte)
 #Graficamos todas las restricciones
 for restriccion in diccionario_restricciones.values():
     plot_restriccion([restriccion['x1'], restriccion['x2']], restriccion['termino_independiente'], restriccion['signo'])
-    #Graficamos los puntos de corte
-    for punto in puntos_de_corte:
+    # Graficamos los puntos de corte
+    for i, punto in enumerate(puntos_de_corte):
         ax.plot(punto[0], punto[1],'ro')
+        ax.annotate(f'({punto[0]:.2f}, {punto[1]:.2f})', (punto[0], punto[1]), textcoords='offset points', xytext=(5,5))
+
+        
+
+#Grafica la funcion objetivo
+x = [0, max(10, max(ax.get_xlim()))]
+y = [(coef_obj_dict["x2"] * i - coef_obj_dict["x1"]) / coef_obj_dict["x1"] for i in x]
+ax.plot(x, y, label="Funcion Objetivo")
+
+#pintar la region factible
     
+
+    # Configurar los límites de los ejes x e y
+plt.xlim(0, 1130)
+plt.ylim(0, 1130)
+
+
+
 plt.legend()
 plt.show()
 
